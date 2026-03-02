@@ -1,30 +1,19 @@
-name: Node.js CI
+name: K6 Load Test
 
 on:
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
 
 jobs:
-  test:
+  k6-test:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [22.20.0, 18.x]
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'npm'
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
 
-      - name: Install dependencies
-        run: npm install
-
-      - name: Run Jest tests
-        run: npm test
+      - name: Run K6 test
+        run: k6 run k6/load-test.js
