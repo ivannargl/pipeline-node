@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
-  "scripts": {
+  "scripts": { 
+    "start": "node src/server.js",
     "test": "jest --passWithNoTests",
     "prepare": "chmod +x node_modules/.bin/jest"
   },
