@@ -12,8 +12,24 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start server
+        run: npm start &
+      
+      - name: Wait for server
+        run: sleep 5
+
       - name: Setup K6
         uses: grafana/setup-k6-action@v1
 
-      - name: Run K6 test
-        run: k6 run k6/load-test.js
+      - name: Run K6 test in Cloud
+        run: k6 cloud ./k6/load-test.js
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
