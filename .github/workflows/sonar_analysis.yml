@@ -15,13 +15,13 @@ jobs:
       - name: Clonación del repositorio (Checkout)
         uses: actions/checkout@v3
         with:
-          [cite_start]fetch-depth: 0 # Requerido para análisis histórico completo [cite: 64]
+          [cite_start]fetch-depth: 0 
 
       - name: Ejecución de Escáner SonarQube
         uses: SonarSource/sonarqube-scan-action@master
         env:
-          [cite_start]SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Secretos de GitHub [cite: 68]
-          [cite_start]SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} # IP de tu VM [cite: 69]
+          [cite_start]SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} 
+          [cite_start]SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} 
         with:
           args: >
             -Dsonar.projectKey=pipeline-node-proyecto
