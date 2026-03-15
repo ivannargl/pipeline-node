@@ -1,0 +1,100 @@
+name: CI/CD Pipeline - Calidad, Rendimiento y Despliegue
+
+on:
+  push:
+    branches: [ "master" ] # Ajustado a tu rama según tus capturas
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # 1. ETAPA DE CALIDAD: SonarQube
+  sonar-quality:
+    name: Análisis de Calidad
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Escaneo SonarQube
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=pipeline-node-proyecto
+            -Dsonar.qualitygate.wait=true
+
+  # 2. ETAPA DE RENDIMIENTO: K6
+  k6-performance:
+    name: Prueba de Rendimiento
+    needs: sonar-quality # Se detiene si Sonar falla
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - run: npm ci
+      - name: Start server
+        run: npm start &
+      - run: sleep 5
+      - uses: grafana/setup-k6-action@v1
+      - name: Run K6 test in Cloud
+        run: k6 cloud ./k6/load-test.js
+        env:
+          K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
+
+  # 3. EMPAQUETADO: Docker a GHCR
+  build-and-push:
+    name: Construcción de Imagen
+    needs: k6-performance # Solo si K6 aprueba
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # 4. DESPLIEGUE CONTINUO (CD)
+  deploy:
+    name: Despliegue a Producción
+    needs: build-and-push # Solo si la imagen se subió
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            docker stop my-node-app || true
+            docker rm my-node-app || true
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master
+            docker run -d \
+              --name my-node-app \
+              -p 80:3000 \
+              --restart always \
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master
