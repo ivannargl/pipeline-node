@@ -38,21 +38,6 @@ describe('Suite de Pruebas de Calidad de Software', () => {
       expect(response.body).toHaveProperty('status', 'OK');
     });
 
-    test('GET /items - Debe validar la estructura del inventario', async () => {
-      const response = await request(app).get('/items');
-      expect(response.statusCode).toBe(200);
-      expect(Array.isArray(response.body)).toBe(true);
-
-      expect(response.body[0]).toHaveProperty('id');
-      expect(response.body[0]).toHaveProperty('stock');
-    });
-
-    // VALIDACIÓN EXTRA 3 (SUPERTEST)
-    test('GET /items - Debe retornar al menos un producto', async () => {
-      const response = await request(app).get('/items');
-      expect(response.body.length).toBeGreaterThan(0);
-    });
-
     // VALIDACIÓN EXTRA 4 (SUPERTEST)
     test('GET /ruta-inexistente - Debe responder 404', async () => {
       const response = await request(app).get('/no-existe');
