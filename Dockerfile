@@ -1,16 +1,18 @@
-FROM node:18-slim
+FROM node:18
 
 WORKDIR /usr/src/app
 
-# Copiar dependencias primero para aprovechar el caché de Docker
+# Copiamos los archivos de configuración
 COPY package*.json ./
 
-RUN npm install --only=production
+# Instalamos sin ejecutar scripts de ciclo de vida (evita el error del prepare)
+RUN npm install --ignore-scripts
 
-# Copiar solo lo necesario
+# Copiamos el resto del código
 COPY . .
 
-# Usar el usuario de bajos privilegios que ya trae la imagen
+# Ajustamos permisos para el usuario node
+RUN chown -R node:node /usr/src/app
 USER node
 
 EXPOSE 3000

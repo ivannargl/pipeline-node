@@ -1,16 +1,11 @@
 {
   "name": "actividad-jest-supertest",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": { 
     "start": "node src/server.js",
-    "test": "jest --passWithNoTests",
-    "prepare": "chmod +x node_modules/.bin/jest"
+    "test": "jest --passWithNoTests"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "type": "commonjs",
   "dependencies": {
     "express": "^5.0.0"
@@ -20,6 +15,6 @@
     "supertest": "^7.0.0"
   },
   "jest": {
-  "testEnvironment": "node"
+    "testEnvironment": "node"
   }
 }
