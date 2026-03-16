@@ -2,22 +2,23 @@ name: CI/CD Pipeline - Calidad, Rendimiento y Despliegue
 
 on:
   push:
-    branches: [ "master" ] 
+    branches: [ "master" ]
 
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
 jobs:
-  # 1. ETAPA DE CALIDAD: SonarQube
+  # 1. ANÁLISIS DE CALIDAD (SonarQube)
   sonar-quality:
     name: Análisis de Calidad
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - name: Clonación del repositorio
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Escaneo SonarQube
+      - name: Ejecución de Escaner SonarQube
         uses: SonarSource/sonarqube-scan-action@master
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
@@ -27,48 +28,54 @@ jobs:
             -Dsonar.projectKey=pipeline-node-proyecto
             -Dsonar.qualitygate.wait=true
 
-  # 2. ETAPA DE RENDIMIENTO: K6
+  # 2. PRUEBA DE RENDIMIENTO (K6)
   k6-performance:
     name: Prueba de Rendimiento
-    needs: sonar-quality # Se detiene si Sonar falla
+    needs: sonar-quality
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
       - name: Start server
         run: npm start &
-      - run: sleep 5
-      - uses: grafana/setup-k6-action@v1
+      - name: Wait for server
+        run: sleep 5
+      - name: Setup K6
+        uses: grafana/setup-k6-action@v1
       - name: Run K6 test in Cloud
         run: k6 cloud ./k6/load-test.js
         env:
           K6_CLOUD_TOKEN: ${{ secrets.K6_CLOUD_TOKEN }}
 
-  # 3. EMPAQUETADO: Docker a GHCR
+  # 3. EMPAQUETADO (Docker)
   build-and-push:
     name: Construcción de Imagen
-    needs: k6-performance # Solo si K6 aprueba
+    needs: k6-performance
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Log in to GHCR
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Log in to the Container Registry
         uses: docker/login-action@v3
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Extract metadata
+      - name: Extract metadata (tags, labels) for Docker
         id: meta
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-      - name: Build and push
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -76,29 +83,30 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
 
- # 4. DESPLIEGUE CONTINUO (CD)
+  # 4. DESPLIEGUE AUTOMÁTICO (CD)
   deploy:
     name: Despliegue a Producción
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      - name: Deploy via SSH
+      - name: Deploy to Cloud Server via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
-          port: 22
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 22
+          script_stop: true
           script: |
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             
             docker stop my-node-app || true
             docker rm my-node-app || true
             
-            docker pull ghcr.io/${{ github.repository }}:master
+            docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master
             
             docker run -d \
               --name my-node-app \
               -p 80:3000 \
               --restart always \
-              ghcr.io/${{ github.repository }}:master
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:master
