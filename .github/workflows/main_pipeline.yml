@@ -1,4 +1,4 @@
-name: CI/CD Pipeline - Calidad, Rendimiento y Despliegue
+name: CI/CD Pipeline - Calidad, Rendimiento y Despliegue V1
 
 on:
   push:
