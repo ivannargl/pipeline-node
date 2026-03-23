@@ -1,17 +1,13 @@
-FROM node:18
+FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
-# Copiamos los archivos de configuración
 COPY package*.json ./
 
-# Instalamos sin ejecutar scripts de ciclo de vida (evita el error del prepare)
 RUN npm install --ignore-scripts
 
-# Copiamos el resto del código
 COPY . .
 
-# Ajustamos permisos para el usuario node
 RUN chown -R node:node /usr/src/app
 USER node
 
