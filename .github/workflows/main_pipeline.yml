@@ -76,9 +76,8 @@ jobs:
             # 2. Login en el registro
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # 3. Descargar versiones nuevas (Usando el comando moderno 'docker compose')
-            docker compose pull
+            # 3. Descargar versiones nuevas 
+            docker-compose pull
 
             # 4. Levantar la infraestructura (App + Prometheus + Grafana + Node Exporter)
-            # Cambiamos 'docker-compose' por 'docker compose'
-            docker compose up -d --build
+            docker-compose up -d --build 
