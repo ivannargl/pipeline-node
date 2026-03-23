@@ -34,7 +34,7 @@ jobs:
       - name: Ejecutar K6
         uses: grafana/k6-action@v0.3.1
         with:
-          filename: script_k6.js # Asegúrate de que este archivo exista en tu repo
+          filename: k6/script_k6.js 
 
   construccion_imagen:
     name: Construcción de Imagen (Docker)
