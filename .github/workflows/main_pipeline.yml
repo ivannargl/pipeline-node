@@ -70,14 +70,20 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
+            # 0. Instalar docker-compose si no existe
+            if ! command -v docker-compose &> /dev/null; then
+              sudo curl -L "https://github.com/docker/compose/releases/download/v2.24.0/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+              sudo chmod +x /usr/local/bin/docker-compose
+            fi
+
             # 1. Entrar a la carpeta del proyecto
             cd /home/${{ secrets.SERVER_USER }}/pipeline-node || exit
 
             # 2. Login en el registro
             echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
-            # 3. Descargar versiones nuevas 
+            # 3. Descargar versiones nuevas
             docker-compose pull
 
-            # 4. Levantar la infraestructura (App + Prometheus + Grafana + Node Exporter)
+            # 4. Levantar la infraestructura
             docker-compose up -d --build 
