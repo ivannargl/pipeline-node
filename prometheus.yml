@@ -1,0 +1,11 @@
+global:
+  [cite_start]scrape_interval: 10s # Recolecta datos cada 10 segundos [cite: 25]
+
+scrape_configs:
+  - [cite_start]job_name: 'servidor' # Monitorea el hardware de la VM [cite: 28]
+    static_configs:
+      - [cite_start]targets: ['node-exporter:9100'] [cite: 30]
+
+  - [cite_start]job_name: 'aplicacion_nodejs' # Monitorea tu App Node [cite: 32]
+    static_configs:
+      - [cite_start]targets: ['app-node:3000'] [cite: 34]
