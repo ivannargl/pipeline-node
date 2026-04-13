@@ -7,5 +7,4 @@ scrape_configs:
       - [cite_start]targets: ['node-exporter:9100'] [cite: 30]
 
   - [cite_start]job_name: 'aplicacion_nodejs' # Monitorea tu App Node [cite: 32]
-    static_configs:
-      - [cite_start]targets: ['app-node:3000'] [cite: 34]
+      - [cite_start]targets: ['app-node-blue:3000', 'app-node-green:3000'] [cite: 34]

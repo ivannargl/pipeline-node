@@ -15,7 +15,7 @@ app.get('/', (req, res) => {
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
           font-family: 'Segoe UI', sans-serif;
-          background: #0f172a;
+          background: #1e0334;
           color: #e2e8f0;
           min-height: 100vh;
           display: flex;
@@ -39,7 +39,7 @@ app.get('/', (req, res) => {
         .subtitle { color: #94a3b8; margin-bottom: 40px; font-size: 0.95rem; }
         .endpoints { display: flex; flex-direction: column; gap: 12px; }
         .card {
-          background: #1e293b;
+          background: #211e3b;
           border: 1px solid #334155;
           border-radius: 10px;
           padding: 16px 20px;
@@ -59,7 +59,7 @@ app.get('/', (req, res) => {
         }
         .route { font-size: 1rem; font-weight: 600; flex: 1; }
         .desc { color: #94a3b8; font-size: 0.85rem; }
-        .footer { margin-top: 40px; color: #475569; font-size: 0.8rem; text-align: center; }
+        .footer { margin-top: 40px; color: #b0b0b0; font-size: 0.8rem; text-align: center; }
       </style>
     </head>
     <body>
