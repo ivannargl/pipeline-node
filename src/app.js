@@ -64,7 +64,7 @@ app.get('/', (req, res) => {
     </head>
     <body>
       <div class="container">
-        <span class="badge">● EN LÍNEA</span>
+        <span class="badge">EN LÍNEA</span>
         <h1>Pipeline Node API</h1>
         <p class="subtitle">API REST desplegada con CI/CD en Google Cloud · Docker · GitHub Actions</p>
 
